@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,13 +40,14 @@ private val RESULTADOS = listOf("Pendiente", "Aprobado", "Rechazado", "Sin respu
 @Composable
 fun EtapaFormScreen(
     postulacionId: Long,
+    etapaId: Long? = null,
     onGuardadoExitoso: () -> Unit,
     onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
     val viewModel: EtapaFormViewModel = viewModel(
-        factory = etapaFormViewModelFactory(app, postulacionId)
+        factory = etapaFormViewModelFactory(app, postulacionId, etapaId)
     )
 
     val uiState by viewModel.uiState.collectAsState()
@@ -59,7 +61,7 @@ fun EtapaFormScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Etapa") },
+                title = { Text(if (uiState.esEdicion) "Editar Etapa" else "Nueva Etapa") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -68,6 +70,11 @@ fun EtapaFormScreen(
             )
         }
     ) { innerPadding ->
+        if (uiState.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.padding(innerPadding).padding(32.dp))
+            return@Scaffold
+        }
+
         Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
             EtapaDropdown(
                 label = "Tipo de etapa",

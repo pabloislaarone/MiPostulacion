@@ -63,6 +63,11 @@ fun AppNavHost() {
                 onAgregarEtapaClick = {
                     navController.navigate(Screen.FormularioEtapa.crearRuta(postulacionId))
                 },
+                onEditarEtapaClick = { etapaId ->
+                    navController.navigate(
+                        Screen.FormularioEtapaEdicion.crearRuta(postulacionId, etapaId)
+                    )
+                },
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -73,6 +78,22 @@ fun AppNavHost() {
             val postulacionId = backStackEntry.arguments?.getLong("postulacionId") ?: 0L
             EtapaFormScreen(
                 postulacionId = postulacionId,
+                onGuardadoExitoso = { navController.popBackStack() },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.FormularioEtapaEdicion.route,
+            arguments = listOf(
+                navArgument("postulacionId") { type = NavType.LongType },
+                navArgument("etapaId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val postulacionId = backStackEntry.arguments?.getLong("postulacionId") ?: 0L
+            val etapaId = backStackEntry.arguments?.getLong("etapaId")
+            EtapaFormScreen(
+                postulacionId = postulacionId,
+                etapaId = etapaId,
                 onGuardadoExitoso = { navController.popBackStack() },
                 onBackClick = { navController.popBackStack() }
             )

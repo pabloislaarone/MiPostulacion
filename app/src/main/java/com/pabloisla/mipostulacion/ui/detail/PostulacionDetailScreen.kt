@@ -1,5 +1,6 @@
 package com.pabloisla.mipostulacion.ui.detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +38,7 @@ fun PostulacionDetailScreen(
     onEliminado: () -> Unit,
     onEditarClick: () -> Unit,
     onAgregarEtapaClick: () -> Unit,
+    onEditarEtapaClick: (Long) -> Unit,
     onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -119,7 +121,11 @@ fun PostulacionDetailScreen(
             } else {
                 LazyColumn {
                     items(uiState.etapas) { etapa ->
-                        EtapaItem(etapa)
+                        EtapaItem(
+                            etapa = etapa,
+                            onClick = { onEditarEtapaClick(etapa.id) },
+                            onEliminarClick = { viewModel.eliminarEtapa(etapa) }
+                        )
                     }
                 }
             }
@@ -135,11 +141,27 @@ fun PostulacionDetailScreen(
 }
 
 @Composable
-private fun EtapaItem(etapa: EtapaProceso) {
-    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = etapa.tipo)
-            Text(text = "Resultado: ${etapa.resultado}")
+private fun EtapaItem(
+    etapa: EtapaProceso,
+    onClick: () -> Unit,
+    onEliminarClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(end = 8.dp)) {
+                Text(text = etapa.tipo)
+                Text(text = "Resultado: ${etapa.resultado}")
+            }
+            Button(onClick = onEliminarClick) {
+                Text("Eliminar")
+            }
         }
     }
 }

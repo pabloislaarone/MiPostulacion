@@ -2,6 +2,7 @@ package com.pabloisla.mipostulacion.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pabloisla.mipostulacion.data.local.EtapaProceso
 import com.pabloisla.mipostulacion.data.repository.PostulacionRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,12 @@ class PostulacionDetailViewModel(
         val postulacion = uiState.value.postulacion ?: return
         viewModelScope.launch {
             repository.eliminarPostulacion(postulacion)
+        }
+    }
+
+    fun eliminarEtapa(etapa: EtapaProceso) {
+        viewModelScope.launch {
+            repository.eliminarEtapa(etapa)
         }
     }
 }
