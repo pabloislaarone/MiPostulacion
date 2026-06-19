@@ -11,3 +11,10 @@ fun postulacionListViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Fa
             PostulacionListViewModel(app.container.postulacionRepository)
         }
     }
+
+fun postulacionFormViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            PostulacionFormViewModel(app.container.postulacionRepository)
+        }
+    }
