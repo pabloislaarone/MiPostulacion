@@ -6,10 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,7 +36,8 @@ fun PostulacionDetailScreen(
     postulacionId: Long,
     onEliminado: () -> Unit,
     onEditarClick: () -> Unit,
-    onAgregarEtapaClick: () -> Unit
+    onAgregarEtapaClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
@@ -50,7 +55,14 @@ fun PostulacionDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Detalle de Postulación") })
+            TopAppBar(
+                title = { Text("Detalle de Postulación") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
         }
     ) { innerPadding ->
         if (uiState.isLoading) {

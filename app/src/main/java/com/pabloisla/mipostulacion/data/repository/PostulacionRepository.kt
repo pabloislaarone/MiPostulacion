@@ -4,11 +4,14 @@ import com.pabloisla.mipostulacion.data.local.EtapaDao
 import com.pabloisla.mipostulacion.data.local.EtapaProceso
 import com.pabloisla.mipostulacion.data.local.Postulacion
 import com.pabloisla.mipostulacion.data.local.PostulacionDao
+import com.pabloisla.mipostulacion.data.remote.TriviaApiService
+import com.pabloisla.mipostulacion.data.remote.TriviaQuestion
 import kotlinx.coroutines.flow.Flow
 
 class PostulacionRepository(
     private val postulacionDao: PostulacionDao,
-    private val etapaDao: EtapaDao
+    private val etapaDao: EtapaDao,
+    private val triviaApiService: TriviaApiService
 ) {
 
     // Postulaciones
@@ -28,7 +31,7 @@ class PostulacionRepository(
     suspend fun eliminarPostulacion(postulacion: Postulacion) =
         postulacionDao.eliminar(postulacion)
 
-    // Etapas de proceso
+    // ---- Etapas de proceso ----
 
     fun obtenerEtapasPorPostulacion(postulacionId: Long): Flow<List<EtapaProceso>> =
         etapaDao.obtenerPorPostulacion(postulacionId)
@@ -44,4 +47,11 @@ class PostulacionRepository(
 
     suspend fun eliminarEtapa(etapa: EtapaProceso) =
         etapaDao.eliminar(etapa)
+
+    // Reto técnico para preparación de entrevistas (Open Trivia Database)
+
+    suspend fun obtenerRetoDelDia(): TriviaQuestion {
+        val respuesta = triviaApiService.obtenerPregunta()
+        return respuesta.results.first()
+    }
 }

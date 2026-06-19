@@ -3,7 +3,6 @@ package com.pabloisla.mipostulacion.ui.list
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,12 +11,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,7 +41,8 @@ private val AREAS = listOf("Frontend", "Backend", "Móvil", "Datos", "QA", "Otro
 @Composable
 fun PostulacionListScreen(
     onAgregarClick: () -> Unit,
-    onPostulacionClick: (Long) -> Unit
+    onPostulacionClick: (Long) -> Unit,
+    onEstadisticasClick: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
@@ -50,7 +52,14 @@ fun PostulacionListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Mis Postulaciones") })
+            TopAppBar(
+                title = { Text("Mis Postulaciones") },
+                actions = {
+                    IconButton(onClick = onEstadisticasClick) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Estadísticas")
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAgregarClick) {
