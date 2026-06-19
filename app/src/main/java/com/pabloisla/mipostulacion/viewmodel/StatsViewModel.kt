@@ -22,8 +22,12 @@ class StatsViewModel(
         repository.obtenerEtapasProximas(),
         _reto
     ) { postulaciones, etapas, reto ->
+        val activas = postulaciones.count { it.estado in listOf("Postulado", "En proceso", "Entrevista") }
+        val ofertas = postulaciones.count { it.estado == "Oferta" }
+        val rechazadas = postulaciones.count { it.estado == "Rechazado" }
+
         StatsUiState(
-            conteoPorEstado = postulaciones.groupingBy { it.estado }.eachCount(),
+            progreso = ProgresoPostulaciones(activas = activas, ofertas = ofertas, rechazadas = rechazadas),
             proximasEtapas = etapas.take(3),
             reto = reto
         )

@@ -9,8 +9,17 @@ sealed interface RetoUiState {
     data class Error(val mensaje: String) : RetoUiState
 }
 
+data class ProgresoPostulaciones(
+    val activas: Int = 0,
+    val ofertas: Int = 0,
+    val rechazadas: Int = 0
+) {
+    val total: Int get() = activas + ofertas + rechazadas
+    val porcentajeOfertas: Int get() = if (total == 0) 0 else (ofertas * 100) / total
+}
+
 data class StatsUiState(
-    val conteoPorEstado: Map<String, Int> = emptyMap(),
+    val progreso: ProgresoPostulaciones = ProgresoPostulaciones(),
     val proximasEtapas: List<EtapaProceso> = emptyList(),
     val reto: RetoUiState = RetoUiState.Cargando
 )
