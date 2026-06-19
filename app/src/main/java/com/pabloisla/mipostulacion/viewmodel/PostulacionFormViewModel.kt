@@ -7,14 +7,42 @@ import com.pabloisla.mipostulacion.data.repository.PostulacionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class PostulacionFormViewModel(
-    private val repository: PostulacionRepository
+    private val repository: PostulacionRepository,
+    postulacionId: Long?
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PostulacionFormUiState())
+    private val _uiState = MutableStateFlow(PostulacionFormUiState(postulacionId = postulacionId))
     val uiState: StateFlow<PostulacionFormUiState> = _uiState.asStateFlow()
+
+    init {
+        if (postulacionId != null) {
+            cargarPostulacion(postulacionId)
+        }
+    }
+
+    private fun cargarPostulacion(id: Long) {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        viewModelScope.launch {
+            val postulacion = repository.obtenerPorId(id).first()
+            if (postulacion != null) {
+                _uiState.value = _uiState.value.copy(
+                    empresa = postulacion.empresa,
+                    puesto = postulacion.puesto,
+                    area = postulacion.area,
+                    modalidad = postulacion.modalidad,
+                    estado = postulacion.estado,
+                    prioridad = postulacion.prioridad,
+                    enlace = postulacion.enlace ?: "",
+                    notas = postulacion.notas ?: "",
+                    isLoading = false
+                )
+            }
+        }
+    }
 
     fun onEmpresaChange(value: String) {
         _uiState.value = _uiState.value.copy(empresa = value, errorValidacion = null)
@@ -59,19 +87,36 @@ class PostulacionFormViewModel(
         }
 
         viewModelScope.launch {
-            repository.registrarPostulacion(
-                Postulacion(
-                    empresa = state.empresa,
-                    puesto = state.puesto,
-                    area = state.area,
-                    modalidad = state.modalidad,
-                    estado = state.estado,
-                    fechaPostulacion = System.currentTimeMillis(),
-                    prioridad = state.prioridad,
-                    enlace = state.enlace.ifBlank { null },
-                    notas = state.notas.ifBlank { null }
+            if (state.esEdicion) {
+                repository.actualizarPostulacion(
+                    Postulacion(
+                        id = state.postulacionId!!,
+                        empresa = state.empresa,
+                        puesto = state.puesto,
+                        area = state.area,
+                        modalidad = state.modalidad,
+                        estado = state.estado,
+                        fechaPostulacion = System.currentTimeMillis(),
+                        prioridad = state.prioridad,
+                        enlace = state.enlace.ifBlank { null },
+                        notas = state.notas.ifBlank { null }
+                    )
                 )
-            )
+            } else {
+                repository.registrarPostulacion(
+                    Postulacion(
+                        empresa = state.empresa,
+                        puesto = state.puesto,
+                        area = state.area,
+                        modalidad = state.modalidad,
+                        estado = state.estado,
+                        fechaPostulacion = System.currentTimeMillis(),
+                        prioridad = state.prioridad,
+                        enlace = state.enlace.ifBlank { null },
+                        notas = state.notas.ifBlank { null }
+                    )
+                )
+            }
             _uiState.value = state.copy(guardadoExitoso = true)
         }
     }

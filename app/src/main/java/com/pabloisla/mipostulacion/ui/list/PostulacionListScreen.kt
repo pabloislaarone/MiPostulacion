@@ -1,7 +1,9 @@
 package com.pabloisla.mipostulacion.ui.list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,7 +32,8 @@ import com.pabloisla.mipostulacion.viewmodel.postulacionListViewModelFactory
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostulacionListScreen(
-    onAgregarClick: () -> Unit
+    onAgregarClick: () -> Unit,
+    onPostulacionClick: (Long) -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
@@ -64,7 +67,10 @@ fun PostulacionListScreen(
                 else -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(uiState.postulaciones) { postulacion ->
-                            PostulacionItem(postulacion)
+                            PostulacionItem(
+                                postulacion = postulacion,
+                                onClick = { onPostulacionClick(postulacion.id) }
+                            )
                         }
                     }
                 }
@@ -74,11 +80,12 @@ fun PostulacionListScreen(
 }
 
 @Composable
-fun PostulacionItem(postulacion: Postulacion) {
+fun PostulacionItem(postulacion: Postulacion, onClick: () -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() }
     ) {
         Box(modifier = Modifier.padding(16.dp)) {
             Text(text = "${postulacion.empresa} — ${postulacion.puesto}")

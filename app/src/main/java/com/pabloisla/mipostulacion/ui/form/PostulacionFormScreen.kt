@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -36,11 +38,14 @@ private val ESTADOS = listOf("Postulado", "En proceso", "Entrevista", "Oferta", 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostulacionFormScreen(
+    postulacionId: Long? = null,
     onGuardadoExitoso: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
-    val viewModel: PostulacionFormViewModel = viewModel(factory = postulacionFormViewModelFactory(app))
+    val viewModel: PostulacionFormViewModel = viewModel(
+        factory = postulacionFormViewModelFactory(app, postulacionId)
+    )
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -52,9 +57,16 @@ fun PostulacionFormScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Nueva Postulación") })
+            TopAppBar(
+                title = { Text(if (uiState.esEdicion) "Editar Postulación" else "Nueva Postulación") }
+            )
         }
     ) { innerPadding ->
+        if (uiState.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.padding(innerPadding).padding(32.dp))
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -150,7 +162,7 @@ private fun DropdownSelector(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor()
         )
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {

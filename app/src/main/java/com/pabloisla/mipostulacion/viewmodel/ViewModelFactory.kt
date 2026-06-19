@@ -12,9 +12,22 @@ fun postulacionListViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Fa
         }
     }
 
-fun postulacionFormViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Factory =
+fun postulacionFormViewModelFactory(
+    app: MiPostulacionApp,
+    postulacionId: Long? = null
+): ViewModelProvider.Factory =
     viewModelFactory {
         initializer {
-            PostulacionFormViewModel(app.container.postulacionRepository)
+            PostulacionFormViewModel(app.container.postulacionRepository, postulacionId)
+        }
+    }
+
+fun postulacionDetailViewModelFactory(
+    app: MiPostulacionApp,
+    postulacionId: Long
+): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            PostulacionDetailViewModel(app.container.postulacionRepository, postulacionId)
         }
     }
