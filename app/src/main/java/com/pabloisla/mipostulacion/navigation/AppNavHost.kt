@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.pabloisla.mipostulacion.ui.detail.PostulacionDetailScreen
+import com.pabloisla.mipostulacion.ui.form.EtapaFormScreen
 import com.pabloisla.mipostulacion.ui.form.PostulacionFormScreen
 import com.pabloisla.mipostulacion.ui.list.PostulacionListScreen
 
@@ -21,20 +22,14 @@ fun AppNavHost() {
     ) {
         composable(Screen.Lista.route) {
             PostulacionListScreen(
-                onAgregarClick = {
-                    navController.navigate(Screen.Formulario.route)
-                },
+                onAgregarClick = { navController.navigate(Screen.Formulario.route) },
                 onPostulacionClick = { postulacionId ->
                     navController.navigate(Screen.Detalle.crearRuta(postulacionId))
                 }
             )
         }
         composable(Screen.Formulario.route) {
-            PostulacionFormScreen(
-                onGuardadoExitoso = {
-                    navController.popBackStack()
-                }
-            )
+            PostulacionFormScreen(onGuardadoExitoso = { navController.popBackStack() })
         }
         composable(
             route = Screen.Formulario.rutaConArgumento,
@@ -43,9 +38,7 @@ fun AppNavHost() {
             val postulacionId = backStackEntry.arguments?.getLong("postulacionId")
             PostulacionFormScreen(
                 postulacionId = postulacionId,
-                onGuardadoExitoso = {
-                    navController.popBackStack()
-                }
+                onGuardadoExitoso = { navController.popBackStack() }
             )
         }
         composable(
@@ -55,12 +48,23 @@ fun AppNavHost() {
             val postulacionId = backStackEntry.arguments?.getLong("postulacionId") ?: 0L
             PostulacionDetailScreen(
                 postulacionId = postulacionId,
-                onEliminado = {
-                    navController.popBackStack()
-                },
+                onEliminado = { navController.popBackStack() },
                 onEditarClick = {
                     navController.navigate(Screen.Formulario.crearRutaEdicion(postulacionId))
+                },
+                onAgregarEtapaClick = {
+                    navController.navigate(Screen.FormularioEtapa.crearRuta(postulacionId))
                 }
+            )
+        }
+        composable(
+            route = Screen.FormularioEtapa.route,
+            arguments = listOf(navArgument("postulacionId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val postulacionId = backStackEntry.arguments?.getLong("postulacionId") ?: 0L
+            EtapaFormScreen(
+                postulacionId = postulacionId,
+                onGuardadoExitoso = { navController.popBackStack() }
             )
         }
     }

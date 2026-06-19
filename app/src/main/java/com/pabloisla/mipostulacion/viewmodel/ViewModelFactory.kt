@@ -31,3 +31,13 @@ fun postulacionDetailViewModelFactory(
             PostulacionDetailViewModel(app.container.postulacionRepository, postulacionId)
         }
     }
+
+fun etapaFormViewModelFactory(
+    app: MiPostulacionApp,
+    postulacionId: Long
+): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            EtapaFormViewModel(app.container.postulacionRepository, postulacionId)
+        }
+    }

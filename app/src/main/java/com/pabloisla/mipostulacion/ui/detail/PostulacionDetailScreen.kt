@@ -31,7 +31,8 @@ import com.pabloisla.mipostulacion.viewmodel.postulacionDetailViewModelFactory
 fun PostulacionDetailScreen(
     postulacionId: Long,
     onEliminado: () -> Unit,
-    onEditarClick: () -> Unit
+    onEditarClick: () -> Unit,
+    onAgregarEtapaClick: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MiPostulacionApp
@@ -109,6 +110,13 @@ fun PostulacionDetailScreen(
                         EtapaItem(etapa)
                     }
                 }
+            }
+
+            Button(
+                onClick = onAgregarEtapaClick,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+            ) {
+                Text("Agregar etapa")
             }
         }
     }
