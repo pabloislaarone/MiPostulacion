@@ -16,7 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,6 +30,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -87,6 +90,8 @@ fun PostulacionListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val nombreUsuario = app.container.nombreUsuario ?: "Usuario"
     var menuAbierto by remember { mutableStateOf(false) }
+
+    val hayFiltrosActivos = uiState.filtroEstado != null || uiState.filtroArea != null
 
     Scaffold(
         topBar = {
@@ -155,11 +160,11 @@ fun PostulacionListScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
 
-            if (uiState.postulaciones.isNotEmpty()) {
-                ResumenRapido(postulaciones = uiState.postulaciones)
+            if (uiState.postulaciones.isNotEmpty() || hayFiltrosActivos) {
+                ResumenRapido(postulacionesTotales = uiState.totalSinFiltrar)
             }
 
-            if (uiState.postulaciones.size >= MINIMO_PARA_MOSTRAR_FILTROS) {
+            if (uiState.totalSinFiltrar.size >= MINIMO_PARA_MOSTRAR_FILTROS) {
                 LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                     items(ESTADOS) { estado ->
                         FilterChip(
@@ -187,12 +192,55 @@ fun PostulacionListScreen(
                         )
                     }
                 }
+
+                if (hayFiltrosActivos) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AssistChip(
+                            onClick = {
+                                viewModel.aplicarFiltroEstado(null)
+                                viewModel.aplicarFiltroArea(null)
+                            },
+                            label = { Text("Quitar filtros") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        )
+                    }
+                }
             }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     uiState.isLoading -> {
                         CircularProgressIndicator(modifier = Modifier.padding(32.dp))
+                    }
+                    uiState.postulaciones.isEmpty() && hayFiltrosActivos -> {
+                        Column(modifier = Modifier.padding(32.dp)) {
+                            Text(
+                                text = "No hay postulaciones con esos filtros",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Prueba combinando otros filtros o quítalos para ver todas",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                            )
+                            OutlinedButton(onClick = {
+                                viewModel.aplicarFiltroEstado(null)
+                                viewModel.aplicarFiltroArea(null)
+                            }) {
+                                Text("Quitar filtros")
+                            }
+                        }
                     }
                     uiState.postulaciones.isEmpty() -> {
                         Column(modifier = Modifier.padding(32.dp)) {
@@ -226,14 +274,13 @@ fun PostulacionListScreen(
 }
 
 @Composable
-private fun ResumenRapido(postulaciones: List<Postulacion>) {
-    val conteoPorEstado = postulaciones.groupingBy { it.estado }.eachCount()
+private fun ResumenRapido(postulacionesTotales: List<Postulacion>) {
+    if (postulacionesTotales.isEmpty()) return
+    val conteoPorEstado = postulacionesTotales.groupingBy { it.estado }.eachCount().entries.take(4)
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -243,7 +290,7 @@ private fun ResumenRapido(postulaciones: List<Postulacion>) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(modifier = Modifier.padding(top = 8.dp)) {
-                conteoPorEstado.entries.take(4).forEach { (estado, cantidad) ->
+                conteoPorEstado.forEach { (estado, cantidad) ->
                     Column(
                         modifier = Modifier.padding(end = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally

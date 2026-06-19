@@ -27,6 +27,7 @@ class PostulacionListViewModel(
         }
         PostulacionListUiState(
             postulaciones = filtradas,
+            totalSinFiltrar = postulaciones,
             filtroEstado = estado,
             filtroArea = area,
             isLoading = false
