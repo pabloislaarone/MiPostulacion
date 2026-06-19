@@ -8,10 +8,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,7 +59,12 @@ fun StatsScreen(
         Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
 
             Text(text = "Resumen de postulaciones")
-            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (uiState.conteoPorEstado.isEmpty()) {
                         Text(text = "Aún no tienes postulaciones registradas")
@@ -71,7 +78,12 @@ fun StatsScreen(
 
             if (uiState.proximasEtapas.isNotEmpty()) {
                 Text(text = "Próximas etapas", modifier = Modifier.padding(top = 16.dp))
-                Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         uiState.proximasEtapas.forEach { etapa ->
                             EtapaResumenItem(etapa)
@@ -112,7 +124,12 @@ private fun RetoTecnicoSection(
             CircularProgressIndicator(modifier = Modifier.padding(16.dp))
         }
         is RetoUiState.Error -> {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = reto.mensaje)
                     Button(
@@ -125,7 +142,12 @@ private fun RetoTecnicoSection(
             }
         }
         is RetoUiState.Exito -> {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = reto.pregunta.question)
                     var seleccionada by remember { mutableStateOf<String?>(null) }
