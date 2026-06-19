@@ -49,3 +49,10 @@ fun statsViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Factory =
             StatsViewModel(app.container.postulacionRepository)
         }
     }
+
+fun loginViewModelFactory(app: MiPostulacionApp): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            LoginViewModel(app.container)
+        }
+    }

@@ -1,6 +1,7 @@
 package com.pabloisla.mipostulacion.navigation
 
 sealed class Screen(val route: String) {
+    object Login : Screen("login")
     object Lista : Screen("lista")
     object Formulario : Screen("formulario") {
         fun crearRutaEdicion(postulacionId: Long): String = "formulario/$postulacionId"

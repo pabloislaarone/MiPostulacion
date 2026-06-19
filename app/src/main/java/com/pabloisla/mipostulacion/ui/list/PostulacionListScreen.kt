@@ -16,9 +16,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -28,9 +31,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -45,6 +53,7 @@ import com.pabloisla.mipostulacion.viewmodel.postulacionListViewModelFactory
 
 private val ESTADOS = listOf("Postulado", "En proceso", "Entrevista", "Oferta", "Rechazado")
 private val AREAS = listOf("Frontend", "Backend", "Móvil", "Datos", "QA", "Otro")
+private const val MINIMO_PARA_MOSTRAR_FILTROS = 5
 
 private fun colorPorEstado(estado: String): Color = when (estado) {
     "Postulado" -> Color(0xFF6890B5)
@@ -53,6 +62,15 @@ private fun colorPorEstado(estado: String): Color = when (estado) {
     "Oferta" -> Color(0xFF4AAE7A)
     "Rechazado" -> Color(0xFFB5544A)
     else -> Color.Gray
+}
+
+private fun inicialesDe(nombre: String): String {
+    val partes = nombre.trim().split(" ").filter { it.isNotBlank() }
+    return when {
+        partes.size >= 2 -> "${partes[0].first()}${partes[1].first()}".uppercase()
+        partes.size == 1 -> partes[0].take(2).uppercase()
+        else -> "?"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,14 +85,64 @@ fun PostulacionListScreen(
     val viewModel: PostulacionListViewModel = viewModel(factory = postulacionListViewModelFactory(app))
 
     val uiState by viewModel.uiState.collectAsState()
+    val nombreUsuario = app.container.nombreUsuario ?: "Usuario"
+    var menuAbierto by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Postulaciones") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = inicialesDe(nombreUsuario),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Column(modifier = Modifier.padding(start = 10.dp)) {
+                            Text(
+                                text = "Hola, $nombreUsuario",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "${uiState.postulaciones.size} postulaciones activas",
+                                color = Color.White.copy(alpha = 0.8f),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = onEstadisticasClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Estadísticas")
+                        Icon(Icons.Default.BarChart, contentDescription = "Estadísticas", tint = Color.White)
+                    }
+                    Box {
+                        IconButton(onClick = { menuAbierto = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = Color.White)
+                        }
+                        DropdownMenu(
+                            expanded = menuAbierto,
+                            onDismissRequest = { menuAbierto = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Cerrar sesión") },
+                                onClick = { menuAbierto = false }
+                            )
+                        }
                     }
                 }
             )
@@ -86,31 +154,38 @@ fun PostulacionListScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                items(ESTADOS) { estado ->
-                    FilterChip(
-                        selected = uiState.filtroEstado == estado,
-                        onClick = {
-                            val nuevoFiltro = if (uiState.filtroEstado == estado) null else estado
-                            viewModel.aplicarFiltroEstado(nuevoFiltro)
-                        },
-                        label = { Text(estado) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                }
+
+            if (uiState.postulaciones.isNotEmpty()) {
+                ResumenRapido(postulaciones = uiState.postulaciones)
             }
 
-            LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                items(AREAS) { area ->
-                    FilterChip(
-                        selected = uiState.filtroArea == area,
-                        onClick = {
-                            val nuevoFiltro = if (uiState.filtroArea == area) null else area
-                            viewModel.aplicarFiltroArea(nuevoFiltro)
-                        },
-                        label = { Text(area) },
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
+            if (uiState.postulaciones.size >= MINIMO_PARA_MOSTRAR_FILTROS) {
+                LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    items(ESTADOS) { estado ->
+                        FilterChip(
+                            selected = uiState.filtroEstado == estado,
+                            onClick = {
+                                val nuevoFiltro = if (uiState.filtroEstado == estado) null else estado
+                                viewModel.aplicarFiltroEstado(nuevoFiltro)
+                            },
+                            label = { Text(estado) },
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+                }
+
+                LazyRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                    items(AREAS) { area ->
+                        FilterChip(
+                            selected = uiState.filtroArea == area,
+                            onClick = {
+                                val nuevoFiltro = if (uiState.filtroArea == area) null else area
+                                viewModel.aplicarFiltroArea(nuevoFiltro)
+                            },
+                            label = { Text(area) },
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
                 }
             }
 
@@ -143,6 +218,47 @@ fun PostulacionListScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResumenRapido(postulaciones: List<Postulacion>) {
+    val conteoPorEstado = postulaciones.groupingBy { it.estado }.eachCount()
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Tu panorama",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(modifier = Modifier.padding(top = 8.dp)) {
+                conteoPorEstado.entries.take(4).forEach { (estado, cantidad) ->
+                    Column(
+                        modifier = Modifier.padding(end = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "$cantidad",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = colorPorEstado(estado)
+                        )
+                        Text(
+                            text = estado,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

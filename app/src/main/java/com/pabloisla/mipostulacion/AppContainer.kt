@@ -16,4 +16,13 @@ class AppContainer(context: Context) {
             triviaApiService = RetrofitInstance.triviaApiService
         )
     }
+
+    // Sesión temporal en memoria (Parte 1, sin Firebase).
+    // En la Parte 2, esto se reemplazará por FirebaseAuth.currentUser.
+    var nombreUsuario: String? = null
+        private set
+
+    fun guardarSesion(nombre: String, apellido: String) {
+        nombreUsuario = "$nombre $apellido"
+    }
 }
