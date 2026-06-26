@@ -18,9 +18,9 @@ import androidx.room.PrimaryKey
 data class EtapaProceso(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val postulacionId: Long,
-    val tipo: String,
-    val fecha: Long,
-    val resultado: String,
+    val postulacionId: Long = 0,
+    val tipo: String = "",
+    val fecha: Long = 0L,
+    val resultado: String = "",
     val notas: String? = null
 )

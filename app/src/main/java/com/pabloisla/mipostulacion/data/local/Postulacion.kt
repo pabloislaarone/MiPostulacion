@@ -7,13 +7,13 @@ import androidx.room.PrimaryKey
 data class Postulacion(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val empresa: String,
-    val puesto: String,
-    val area: String,
-    val modalidad: String,
-    val estado: String,
-    val fechaPostulacion: Long,
-    val prioridad: Int,
+    val empresa: String = "",
+    val puesto: String = "",
+    val area: String = "",
+    val modalidad: String = "",
+    val estado: String = "",
+    val fechaPostulacion: Long = 0L,
+    val prioridad: Int = 2,
     val enlace: String? = null,
     val notas: String? = null
 )

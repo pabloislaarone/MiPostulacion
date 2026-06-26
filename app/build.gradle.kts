@@ -72,4 +72,11 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
 
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // Firebase (Parte 2): Authentication, Cloud Firestore, Cloud Messaging
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
 }

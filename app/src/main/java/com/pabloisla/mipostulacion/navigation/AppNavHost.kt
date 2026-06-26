@@ -1,12 +1,17 @@
 package com.pabloisla.mipostulacion.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.pabloisla.mipostulacion.MiPostulacionApp
+import com.pabloisla.mipostulacion.ui.auth.LoginScreen
 import com.pabloisla.mipostulacion.ui.detail.PostulacionDetailScreen
 import com.pabloisla.mipostulacion.ui.form.EtapaFormScreen
 import com.pabloisla.mipostulacion.ui.form.PostulacionFormScreen
@@ -14,13 +19,33 @@ import com.pabloisla.mipostulacion.ui.list.PostulacionListScreen
 import com.pabloisla.mipostulacion.ui.stats.StatsScreen
 
 @Composable
-fun AppNavHost() {
+fun AppNavHost(postulacionIdDesdeNotificacion: Long? = null) {
+    val context = LocalContext.current
+    val app = context.applicationContext as MiPostulacionApp
     val navController: NavHostController = rememberNavController()
+
+    val haySesionActiva = remember { app.container.authRepository.haySesionActiva() }
+    val startDestination = if (haySesionActiva) Screen.Lista.route else Screen.Login.route
+
+    LaunchedEffect(postulacionIdDesdeNotificacion) {
+        if (postulacionIdDesdeNotificacion != null && haySesionActiva) {
+            navController.navigate(Screen.Detalle.crearRuta(postulacionIdDesdeNotificacion))
+        }
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Lista.route
+        startDestination = startDestination
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onAutenticadoExitoso = {
+                    navController.navigate(Screen.Lista.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screen.Lista.route) {
             PostulacionListScreen(
                 onAgregarClick = { navController.navigate(Screen.Formulario.route) },
@@ -99,7 +124,15 @@ fun AppNavHost() {
             )
         }
         composable(Screen.Estadisticas.route) {
-            StatsScreen(onBackClick = { navController.popBackStack() })
+            StatsScreen(
+                onBackClick = { navController.popBackStack() },
+                onCerrarSesion = {
+                    app.container.authRepository.cerrarSesion()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

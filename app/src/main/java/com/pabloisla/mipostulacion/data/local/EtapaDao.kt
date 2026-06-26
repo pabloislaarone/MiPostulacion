@@ -3,6 +3,7 @@ package com.pabloisla.mipostulacion.data.local
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,9 @@ interface EtapaDao {
 
     @Insert
     suspend fun insertar(etapa: EtapaProceso): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarTodas(etapas: List<EtapaProceso>)
 
     @Update
     suspend fun actualizar(etapa: EtapaProceso)
