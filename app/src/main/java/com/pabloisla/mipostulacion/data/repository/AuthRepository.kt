@@ -9,8 +9,13 @@ class AuthRepository(
 
     fun usuarioActualId(): String? = authSource.usuarioActualId()
 
-    suspend fun registrar(correo: String, contrasena: String): Result<Unit> =
-        authSource.registrar(correo, contrasena)
+    suspend fun registrar(
+        nombre: String,
+        apellido: String,
+        correo: String,
+        contrasena: String
+    ): Result<Unit> =
+        authSource.registrar(nombre, apellido, correo, contrasena)
 
     suspend fun iniciarSesion(correo: String, contrasena: String): Result<Unit> =
         authSource.iniciarSesion(correo, contrasena)

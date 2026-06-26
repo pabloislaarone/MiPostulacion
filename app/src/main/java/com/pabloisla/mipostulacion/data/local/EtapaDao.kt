@@ -28,4 +28,7 @@ interface EtapaDao {
 
     @Query("SELECT * FROM etapas_proceso ORDER BY fecha ASC")
     fun obtenerProximas(): Flow<List<EtapaProceso>>
+
+    @Query("DELETE FROM etapas_proceso")
+    suspend fun eliminarTodas()
 }

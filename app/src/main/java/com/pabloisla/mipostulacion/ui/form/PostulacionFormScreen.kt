@@ -2,6 +2,7 @@ package com.pabloisla.mipostulacion.ui.form
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -172,17 +173,25 @@ fun PostulacionFormScreen(
                 }
 
                 CampoConEtiqueta(label = "Fecha de postulación", modifier = Modifier.padding(top = 14.dp)) {
-                    OutlinedTextField(
-                        value = formatearFecha(uiState.fechaPostulacion),
-                        onValueChange = {},
-                        readOnly = true,
-                        leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = campoColors(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { mostrarSelectorFecha = true }
-                    )
+                    Box {
+                        OutlinedTextField(
+                            value = formatearFecha(uiState.fechaPostulacion),
+                            onValueChange = {},
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = campoColors(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        // El propio OutlinedTextField intercepta el toque para enfocarse
+                        // antes de que llegue un clickable adjunto a él; este overlay
+                        // transparente del mismo tamaño es el que realmente recibe el toque.
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { mostrarSelectorFecha = true }
+                        )
+                    }
                 }
 
                 CampoConEtiqueta(label = "Prioridad", modifier = Modifier.padding(top = 14.dp)) {

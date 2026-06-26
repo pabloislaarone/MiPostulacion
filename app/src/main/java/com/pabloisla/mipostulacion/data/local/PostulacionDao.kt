@@ -28,4 +28,7 @@ interface PostulacionDao {
 
     @Query("SELECT * FROM postulaciones WHERE id = :id")
     fun obtenerPorId(id: Long): Flow<Postulacion?>
+
+    @Query("DELETE FROM postulaciones")
+    suspend fun eliminarTodas()
 }

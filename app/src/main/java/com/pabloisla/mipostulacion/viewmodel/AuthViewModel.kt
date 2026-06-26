@@ -21,12 +21,24 @@ class AuthViewModel(
         _uiState.value = _uiState.value.copy(modo = modo, errorMensaje = null)
     }
 
+    fun onNombreChange(value: String) {
+        _uiState.value = _uiState.value.copy(nombre = value, errorMensaje = null)
+    }
+
+    fun onApellidoChange(value: String) {
+        _uiState.value = _uiState.value.copy(apellido = value, errorMensaje = null)
+    }
+
     fun onCorreoChange(value: String) {
         _uiState.value = _uiState.value.copy(correo = value, errorMensaje = null)
     }
 
     fun onContrasenaChange(value: String) {
         _uiState.value = _uiState.value.copy(contrasena = value, errorMensaje = null)
+    }
+
+    fun onConfirmarContrasenaChange(value: String) {
+        _uiState.value = _uiState.value.copy(confirmarContrasena = value, errorMensaje = null)
     }
 
     fun continuar() {
@@ -37,10 +49,21 @@ class AuthViewModel(
             return
         }
 
+        if (state.modo == AuthModo.REGISTRO) {
+            if (state.nombre.isBlank() || state.apellido.isBlank()) {
+                _uiState.value = state.copy(errorMensaje = "Ingresa tu nombre y apellido")
+                return
+            }
+            if (state.contrasena != state.confirmarContrasena) {
+                _uiState.value = state.copy(errorMensaje = "Las contraseñas no coinciden")
+                return
+            }
+        }
+
         _uiState.value = state.copy(isLoading = true, errorMensaje = null)
         viewModelScope.launch {
             val resultado = if (state.modo == AuthModo.REGISTRO) {
-                authRepository.registrar(state.correo, state.contrasena)
+                authRepository.registrar(state.nombre, state.apellido, state.correo, state.contrasena)
             } else {
                 authRepository.iniciarSesion(state.correo, state.contrasena)
             }

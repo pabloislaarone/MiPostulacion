@@ -2,6 +2,7 @@ package com.pabloisla.mipostulacion.ui.form
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -173,38 +174,50 @@ fun EtapaFormScreen(
                         modifier = Modifier.padding(top = 18.dp)
                     )
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = formatearFecha(aFechaUtcMedianoche(uiState.fecha)),
-                            onValueChange = {},
-                            readOnly = true,
-                            leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                            ),
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .clickable { mostrarSelectorFecha = true }
-                        )
-                        OutlinedTextField(
-                            value = formatearHora(
-                                Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.HOUR_OF_DAY),
-                                Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.MINUTE)
-                            ),
-                            onValueChange = {},
-                            readOnly = true,
-                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(start = 10.dp)
-                                .clickable { mostrarSelectorHora = true }
-                        )
+                        Box(modifier = Modifier.weight(1.2f)) {
+                            OutlinedTextField(
+                                value = formatearFecha(aFechaUtcMedianoche(uiState.fecha)),
+                                onValueChange = {},
+                                readOnly = true,
+                                leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            // El propio OutlinedTextField intercepta el toque para enfocarse
+                            // antes de que llegue un clickable adjunto a él; este overlay
+                            // transparente del mismo tamaño es el que realmente recibe el toque.
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { mostrarSelectorFecha = true }
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                            OutlinedTextField(
+                                value = formatearHora(
+                                    Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.HOUR_OF_DAY),
+                                    Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.MINUTE)
+                                ),
+                                onValueChange = {},
+                                readOnly = true,
+                                leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { mostrarSelectorHora = true }
+                            )
+                        }
                     }
                     if (esFechaPasada(uiState.fecha)) {
                         Row(

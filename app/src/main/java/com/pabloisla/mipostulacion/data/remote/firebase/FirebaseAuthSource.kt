@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthSource {
@@ -15,9 +16,18 @@ class FirebaseAuthSource {
 
     fun haySesionActiva(): Boolean = auth.currentUser != null
 
-    suspend fun registrar(correo: String, contrasena: String): Result<Unit> =
+    suspend fun registrar(
+        nombre: String,
+        apellido: String,
+        correo: String,
+        contrasena: String
+    ): Result<Unit> =
         try {
-            auth.createUserWithEmailAndPassword(correo, contrasena).await()
+            val resultado = auth.createUserWithEmailAndPassword(correo, contrasena).await()
+            val perfil = UserProfileChangeRequest.Builder()
+                .setDisplayName("$nombre $apellido".trim())
+                .build()
+            resultado.user?.updateProfile(perfil)?.await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(Exception(mensajeDeError(e)))

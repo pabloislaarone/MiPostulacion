@@ -88,6 +88,11 @@ class PostulacionRepository(
         runCatching {
             val postulaciones = firestoreSource.obtenerPostulaciones(uid)
             val etapas = firestoreSource.obtenerEtapas(uid)
+            // Room es un único almacén local compartido por cualquier cuenta que inicie
+            // sesión en este dispositivo; se limpia antes de cada sincronización para que
+            // una cuenta nunca vea datos que quedaron de otra cuenta usada anteriormente.
+            postulacionDao.eliminarTodas()
+            etapaDao.eliminarTodas()
             postulacionDao.insertarTodas(postulaciones)
             etapaDao.insertarTodas(etapas)
         }

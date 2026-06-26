@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.WorkOutline
@@ -109,7 +111,7 @@ fun LoginScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = (-32).dp),
+                .offset(y = (-32).dp),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -119,6 +121,44 @@ fun LoginScreen(
                     modoActual = uiState.modo,
                     onModoChange = viewModel::cambiarModo
                 )
+
+                if (uiState.modo == AuthModo.REGISTRO) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 22.dp)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Nombre",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                            OutlinedTextField(
+                                value = uiState.nombre,
+                                onValueChange = viewModel::onNombreChange,
+                                placeholder = { Text("Pablo") },
+                                leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = campoColors(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                            Text(
+                                text = "Apellido",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                            OutlinedTextField(
+                                value = uiState.apellido,
+                                onValueChange = viewModel::onApellidoChange,
+                                placeholder = { Text("Isla") },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = campoColors(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
 
                 Text(
                     text = "Correo electrónico",
@@ -154,6 +194,26 @@ fun LoginScreen(
                     colors = campoColors(),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                if (uiState.modo == AuthModo.REGISTRO) {
+                    Text(
+                        text = "Confirmar contraseña",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 6.dp)
+                    )
+                    OutlinedTextField(
+                        value = uiState.confirmarContrasena,
+                        onValueChange = viewModel::onConfirmarContrasenaChange,
+                        placeholder = { Text("••••••••") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = campoColors(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 if (uiState.errorMensaje != null) {
                     Text(
