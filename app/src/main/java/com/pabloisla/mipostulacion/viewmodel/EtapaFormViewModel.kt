@@ -46,6 +46,10 @@ class EtapaFormViewModel(
         _uiState.value = _uiState.value.copy(tipo = value)
     }
 
+    fun onFechaChange(value: Long) {
+        _uiState.value = _uiState.value.copy(fecha = value)
+    }
+
     fun onResultadoChange(value: String) {
         _uiState.value = _uiState.value.copy(resultado = value)
     }

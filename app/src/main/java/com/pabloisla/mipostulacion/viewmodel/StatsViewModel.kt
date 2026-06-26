@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.IOException
 
+private val ESTADOS = listOf("Postulado", "En proceso", "Entrevista", "Oferta", "Rechazado")
+
 class StatsViewModel(
     private val repository: PostulacionRepository
 ) : ViewModel() {
@@ -22,13 +24,14 @@ class StatsViewModel(
         repository.obtenerEtapasProximas(),
         _reto
     ) { postulaciones, etapas, reto ->
-        val activas = postulaciones.count { it.estado in listOf("Postulado", "En proceso", "Entrevista") }
-        val ofertas = postulaciones.count { it.estado == "Oferta" }
-        val rechazadas = postulaciones.count { it.estado == "Rechazado" }
+        val conteoPorEstado = ESTADOS.associateWith { estado ->
+            postulaciones.count { it.estado == estado }
+        }
 
+        val ahora = System.currentTimeMillis()
         StatsUiState(
-            progreso = ProgresoPostulaciones(activas = activas, ofertas = ofertas, rechazadas = rechazadas),
-            proximasEtapas = etapas.take(3),
+            progreso = ProgresoPostulaciones(conteoPorEstado = conteoPorEstado),
+            proximasEtapas = etapas.filter { it.fecha >= ahora }.take(3),
             reto = reto
         )
     }.stateIn(

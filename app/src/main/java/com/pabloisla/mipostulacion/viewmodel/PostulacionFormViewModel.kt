@@ -35,6 +35,7 @@ class PostulacionFormViewModel(
                     area = postulacion.area,
                     modalidad = postulacion.modalidad,
                     estado = postulacion.estado,
+                    fechaPostulacion = postulacion.fechaPostulacion,
                     prioridad = postulacion.prioridad,
                     enlace = postulacion.enlace ?: "",
                     notas = postulacion.notas ?: "",
@@ -62,6 +63,10 @@ class PostulacionFormViewModel(
 
     fun onEstadoChange(value: String) {
         _uiState.value = _uiState.value.copy(estado = value)
+    }
+
+    fun onFechaChange(value: Long) {
+        _uiState.value = _uiState.value.copy(fechaPostulacion = value)
     }
 
     fun onPrioridadChange(value: Int) {
@@ -96,7 +101,7 @@ class PostulacionFormViewModel(
                         area = state.area,
                         modalidad = state.modalidad,
                         estado = state.estado,
-                        fechaPostulacion = System.currentTimeMillis(),
+                        fechaPostulacion = state.fechaPostulacion,
                         prioridad = state.prioridad,
                         enlace = state.enlace.ifBlank { null },
                         notas = state.notas.ifBlank { null }
@@ -110,7 +115,7 @@ class PostulacionFormViewModel(
                         area = state.area,
                         modalidad = state.modalidad,
                         estado = state.estado,
-                        fechaPostulacion = System.currentTimeMillis(),
+                        fechaPostulacion = state.fechaPostulacion,
                         prioridad = state.prioridad,
                         enlace = state.enlace.ifBlank { null },
                         notas = state.notas.ifBlank { null }

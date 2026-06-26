@@ -7,6 +7,7 @@ data class PostulacionFormUiState(
     val area: String = "Frontend",
     val modalidad: String = "Remoto",
     val estado: String = "Postulado",
+    val fechaPostulacion: Long = System.currentTimeMillis(),
     val prioridad: Int = 2,
     val enlace: String = "",
     val notas: String = "",

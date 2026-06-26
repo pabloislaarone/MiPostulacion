@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.pabloisla.mipostulacion.ui.auth.LoginScreen
 import com.pabloisla.mipostulacion.ui.detail.PostulacionDetailScreen
 import com.pabloisla.mipostulacion.ui.form.EtapaFormScreen
 import com.pabloisla.mipostulacion.ui.form.PostulacionFormScreen
@@ -20,17 +19,8 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = Screen.Lista.route
     ) {
-        composable(Screen.Login.route) {
-            LoginScreen(
-                onAutenticadoExitoso = {
-                    navController.navigate(Screen.Lista.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
         composable(Screen.Lista.route) {
             PostulacionListScreen(
                 onAgregarClick = { navController.navigate(Screen.Formulario.route) },

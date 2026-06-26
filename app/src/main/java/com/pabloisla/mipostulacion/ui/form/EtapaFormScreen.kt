@@ -5,11 +5,24 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -36,22 +50,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pabloisla.mipostulacion.MiPostulacionApp
+import com.pabloisla.mipostulacion.ui.components.SelectorFecha
+import com.pabloisla.mipostulacion.ui.components.SelectorHora
+import com.pabloisla.mipostulacion.ui.theme.Carbon
+import com.pabloisla.mipostulacion.ui.theme.colorPorResultado
+import com.pabloisla.mipostulacion.util.aFechaUtcMedianoche
+import com.pabloisla.mipostulacion.util.combinarFechaYHora
+import com.pabloisla.mipostulacion.util.esFechaPasada
+import com.pabloisla.mipostulacion.util.formatearFecha
+import com.pabloisla.mipostulacion.util.formatearHora
 import com.pabloisla.mipostulacion.viewmodel.EtapaFormViewModel
 import com.pabloisla.mipostulacion.viewmodel.etapaFormViewModelFactory
+import java.util.Calendar
 
 private val TIPOS = listOf("Entrevista RRHH", "Entrevista Técnica", "Prueba o Caso", "Resultado", "Otro")
 private val RESULTADOS = listOf("Pendiente", "Aprobado", "Rechazado", "Sin respuesta")
 
-private fun colorPorResultado(resultado: String): Color = when (resultado) {
-    "Aprobado" -> Color(0xFF4AAE7A)
-    "Rechazado" -> Color(0xFFB5544A)
-    "Sin respuesta" -> Color(0xFFB5A04A)
-    else -> Color(0xFF6890B5)
+private fun iconoPorResultado(resultado: String): ImageVector = when (resultado) {
+    "Aprobado" -> Icons.Default.CheckCircle
+    "Rechazado" -> Icons.Default.Cancel
+    "Sin respuesta" -> Icons.Default.QuestionMark
+    else -> Icons.Default.HourglassEmpty
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,11 +94,45 @@ fun EtapaFormScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
+    var mostrarSelectorFecha by remember { mutableStateOf(false) }
+    var mostrarSelectorHora by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.guardadoExitoso) {
         if (uiState.guardadoExitoso) {
             onGuardadoExitoso()
         }
+    }
+
+    if (mostrarSelectorFecha) {
+        SelectorFecha(
+            fechaInicialMillis = aFechaUtcMedianoche(uiState.fecha),
+            onFechaSeleccionada = { nuevaFechaUtc ->
+                val actual = Calendar.getInstance().apply { timeInMillis = uiState.fecha }
+                viewModel.onFechaChange(
+                    combinarFechaYHora(
+                        nuevaFechaUtc,
+                        actual.get(Calendar.HOUR_OF_DAY),
+                        actual.get(Calendar.MINUTE)
+                    )
+                )
+            },
+            onDismiss = { mostrarSelectorFecha = false }
+        )
+    }
+
+    if (mostrarSelectorHora) {
+        val actual = Calendar.getInstance().apply { timeInMillis = uiState.fecha }
+        SelectorHora(
+            horaInicial = actual.get(Calendar.HOUR_OF_DAY),
+            minutoInicial = actual.get(Calendar.MINUTE),
+            onHoraSeleccionada = { hora, minuto ->
+                val calendarFecha = Calendar.getInstance().apply { timeInMillis = uiState.fecha }
+                calendarFecha.set(Calendar.HOUR_OF_DAY, hora)
+                calendarFecha.set(Calendar.MINUTE, minuto)
+                viewModel.onFechaChange(calendarFecha.timeInMillis)
+            },
+            onDismiss = { mostrarSelectorHora = false }
+        )
     }
 
     Scaffold(
@@ -96,28 +155,81 @@ fun EtapaFormScreen(
         Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "TIPO DE ETAPA",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(bottom = 10.dp)
-                    )
+                Column(modifier = Modifier.padding(18.dp)) {
+                    SeccionTitulo(icono = Icons.Default.Event, texto = "Tipo de etapa")
                     EtapaDropdown(
                         opciones = TIPOS,
                         seleccion = uiState.tipo,
                         onSeleccionar = viewModel::onTipoChange
                     )
 
-                    Text(
-                        text = "RESULTADO",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 10.dp)
+                    SeccionTitulo(
+                        icono = Icons.Default.CalendarMonth,
+                        texto = "Fecha y hora",
+                        modifier = Modifier.padding(top = 18.dp)
+                    )
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = formatearFecha(aFechaUtcMedianoche(uiState.fecha)),
+                            onValueChange = {},
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier
+                                .weight(1.2f)
+                                .clickable { mostrarSelectorFecha = true }
+                        )
+                        OutlinedTextField(
+                            value = formatearHora(
+                                Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.HOUR_OF_DAY),
+                                Calendar.getInstance().apply { timeInMillis = uiState.fecha }.get(Calendar.MINUTE)
+                            ),
+                            onValueChange = {},
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 10.dp)
+                                .clickable { mostrarSelectorHora = true }
+                        )
+                    }
+                    if (esFechaPasada(uiState.fecha)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WarningAmber,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "Esta fecha ya pasó: no se programará un recordatorio.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                    }
+
+                    SeccionTitulo(
+                        icono = Icons.Default.CheckCircle,
+                        texto = "Resultado",
+                        modifier = Modifier.padding(top = 18.dp)
                     )
                     Row(modifier = Modifier.fillMaxWidth()) {
                         RESULTADOS.forEach { resultado ->
@@ -127,23 +239,26 @@ fun EtapaFormScreen(
                                 color = colorPorResultado(resultado),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(end = if (resultado != RESULTADOS.last()) 6.dp else 0.dp),
+                                    .padding(end = if (resultado != RESULTADOS.last()) 8.dp else 0.dp),
                                 onClick = { viewModel.onResultadoChange(resultado) }
                             )
                         }
                     }
 
-                    Text(
-                        text = "NOTAS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 10.dp)
+                    SeccionTitulo(
+                        icono = Icons.AutoMirrored.Filled.Notes,
+                        texto = "Notas",
+                        modifier = Modifier.padding(top = 18.dp)
                     )
                     OutlinedTextField(
                         value = uiState.notas,
                         onValueChange = viewModel::onNotasChange,
                         placeholder = { Text("Opcional") },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -151,11 +266,41 @@ fun EtapaFormScreen(
 
             Button(
                 onClick = viewModel::guardarEtapa,
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Carbon,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp).padding(top = 20.dp)
             ) {
-                Text("Guardar etapa")
+                Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Text(
+                    "Guardar etapa",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 10.dp)
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun SeccionTitulo(icono: ImageVector, texto: String, modifier: Modifier = Modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(bottom = 10.dp)) {
+        Icon(
+            imageVector = icono,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = texto.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
@@ -177,6 +322,11 @@ private fun EtapaDropdown(
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            ),
             modifier = Modifier.fillMaxWidth().menuAnchor()
         )
         DropdownMenu(
@@ -206,18 +356,25 @@ private fun ResultadoOpcion(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (seleccionado) color else MaterialTheme.colorScheme.background)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (seleccionado) color else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .clickable { onClick() }
-            .padding(vertical = 10.dp, horizontal = 4.dp),
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            imageVector = iconoPorResultado(texto),
+            contentDescription = null,
+            tint = if (seleccionado) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(15.dp)
+        )
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
             color = if (seleccionado) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (seleccionado) FontWeight.Medium else FontWeight.Normal,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(top = 4.dp)
         )
     }
 }

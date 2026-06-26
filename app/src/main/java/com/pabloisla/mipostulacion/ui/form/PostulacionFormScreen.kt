@@ -5,14 +5,25 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,12 +50,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pabloisla.mipostulacion.MiPostulacionApp
+import com.pabloisla.mipostulacion.ui.components.SelectorFecha
+import com.pabloisla.mipostulacion.ui.theme.Carbon
+import com.pabloisla.mipostulacion.util.formatearFecha
 import com.pabloisla.mipostulacion.viewmodel.PostulacionFormViewModel
 import com.pabloisla.mipostulacion.viewmodel.postulacionFormViewModelFactory
 
@@ -66,11 +82,20 @@ fun PostulacionFormScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
+    var mostrarSelectorFecha by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.guardadoExitoso) {
         if (uiState.guardadoExitoso) {
             onGuardadoExitoso()
         }
+    }
+
+    if (mostrarSelectorFecha) {
+        SelectorFecha(
+            fechaInicialMillis = uiState.fechaPostulacion,
+            onFechaSeleccionada = viewModel::onFechaChange,
+            onDismiss = { mostrarSelectorFecha = false }
+        )
     }
 
     Scaffold(
@@ -96,26 +121,28 @@ fun PostulacionFormScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            SeccionCard(titulo = "Información básica") {
+            SeccionCard(titulo = "Información básica", icono = Icons.Default.Business) {
                 CampoConEtiqueta(label = "Empresa") {
-                    OutlinedTextField(
-                        value = uiState.empresa,
-                        onValueChange = viewModel::onEmpresaChange,
-                        placeholder = { Text("Ej. Globant") },
-                        modifier = Modifier.fillMaxWidth()
+                    CampoConSugerencias(
+                        valor = uiState.empresa,
+                        placeholder = "Busca o escribe una empresa",
+                        icono = Icons.Default.Business,
+                        sugerencias = EMPRESAS_SUGERIDAS,
+                        onValueChange = viewModel::onEmpresaChange
                     )
                 }
                 CampoConEtiqueta(label = "Puesto", modifier = Modifier.padding(top = 12.dp)) {
-                    OutlinedTextField(
-                        value = uiState.puesto,
-                        onValueChange = viewModel::onPuestoChange,
-                        placeholder = { Text("Ej. Practicante Backend") },
-                        modifier = Modifier.fillMaxWidth()
+                    CampoConSugerencias(
+                        valor = uiState.puesto,
+                        placeholder = "Busca o escribe un puesto",
+                        icono = Icons.Default.Work,
+                        sugerencias = PUESTOS_SUGERIDOS,
+                        onValueChange = viewModel::onPuestoChange
                     )
                 }
             }
 
-            SeccionCard(titulo = "Detalles del proceso", modifier = Modifier.padding(top = 12.dp)) {
+            SeccionCard(titulo = "Detalles del proceso", icono = Icons.Default.Tune, modifier = Modifier.padding(top = 14.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     CampoConEtiqueta(label = "Área", modifier = Modifier.weight(1f)) {
                         DropdownSelector(
@@ -126,7 +153,7 @@ fun PostulacionFormScreen(
                     }
                     CampoConEtiqueta(
                         label = "Modalidad",
-                        modifier = Modifier.weight(1f).padding(start = 8.dp)
+                        modifier = Modifier.weight(1f).padding(start = 10.dp)
                     ) {
                         DropdownSelector(
                             opciones = MODALIDADES,
@@ -136,7 +163,7 @@ fun PostulacionFormScreen(
                     }
                 }
 
-                CampoConEtiqueta(label = "Estado", modifier = Modifier.padding(top = 12.dp)) {
+                CampoConEtiqueta(label = "Estado", modifier = Modifier.padding(top = 14.dp)) {
                     DropdownSelector(
                         opciones = ESTADOS,
                         seleccion = uiState.estado,
@@ -144,7 +171,21 @@ fun PostulacionFormScreen(
                     )
                 }
 
-                CampoConEtiqueta(label = "Prioridad", modifier = Modifier.padding(top = 12.dp)) {
+                CampoConEtiqueta(label = "Fecha de postulación", modifier = Modifier.padding(top = 14.dp)) {
+                    OutlinedTextField(
+                        value = formatearFecha(uiState.fechaPostulacion),
+                        onValueChange = {},
+                        readOnly = true,
+                        leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = campoColors(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { mostrarSelectorFecha = true }
+                    )
+                }
+
+                CampoConEtiqueta(label = "Prioridad", modifier = Modifier.padding(top = 14.dp)) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         PRIORIDADES.forEach { (valor, etiqueta) ->
                             PrioridadOpcion(
@@ -152,7 +193,7 @@ fun PostulacionFormScreen(
                                 seleccionado = uiState.prioridad == valor,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(end = if (valor != 3) 6.dp else 0.dp),
+                                    .padding(end = if (valor != 3) 8.dp else 0.dp),
                                 onClick = { viewModel.onPrioridadChange(valor) }
                             )
                         }
@@ -160,13 +201,16 @@ fun PostulacionFormScreen(
                 }
             }
 
-            SeccionCard(titulo = "Información adicional", modifier = Modifier.padding(top = 12.dp)) {
+            SeccionCard(titulo = "Información adicional", icono = Icons.AutoMirrored.Filled.Notes, modifier = Modifier.padding(top = 14.dp)) {
                 CampoConEtiqueta(label = "Enlace") {
                     OutlinedTextField(
                         value = uiState.enlace,
                         onValueChange = viewModel::onEnlaceChange,
                         placeholder = { Text("Opcional") },
+                        leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = campoColors(),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -175,6 +219,9 @@ fun PostulacionFormScreen(
                         value = uiState.notas,
                         onValueChange = viewModel::onNotasChange,
                         placeholder = { Text("Opcional") },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = campoColors(),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -191,32 +238,65 @@ fun PostulacionFormScreen(
 
             Button(
                 onClick = viewModel::guardarPostulacion,
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 12.dp)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Carbon,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp).padding(top = 22.dp, bottom = 12.dp)
             ) {
-                Text("Guardar")
+                Icon(Icons.Default.Save, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Text(
+                    "Guardar",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 10.dp)
+                )
             }
         }
     }
 }
 
 @Composable
+private fun campoColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+)
+
+@Composable
 private fun SeccionCard(
     titulo: String,
+    icono: ImageVector,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = titulo.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 14.dp)
+            ) {
+                Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = titulo.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
             content()
         }
     }
@@ -233,7 +313,7 @@ private fun CampoConEtiqueta(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier.padding(bottom = 6.dp)
         )
         content()
     }
@@ -257,6 +337,8 @@ private fun DropdownSelector(
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            shape = RoundedCornerShape(14.dp),
+            colors = campoColors(),
             modifier = Modifier.fillMaxWidth().menuAnchor()
         )
         DropdownMenu(
@@ -285,21 +367,28 @@ private fun PrioridadOpcion(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(
                 if (seleccionado) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.background
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             )
             .clickable { onClick() }
-            .padding(vertical = 10.dp),
+            .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            imageVector = Icons.Default.Flag,
+            contentDescription = null,
+            tint = if (seleccionado) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp)
+        )
         Text(
             text = texto,
             style = MaterialTheme.typography.labelMedium,
-            color = if (seleccionado) androidx.compose.ui.graphics.Color.White
+            color = if (seleccionado) Color.White
             else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (seleccionado) FontWeight.Medium else FontWeight.Normal
+            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium,
+            modifier = Modifier.padding(top = 4.dp)
         )
     }
 }

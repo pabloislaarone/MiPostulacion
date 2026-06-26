@@ -18,16 +18,24 @@ class PostulacionListViewModel(
 
     val uiState: StateFlow<PostulacionListUiState> = combine(
         repository.obtenerTodas(),
+        repository.obtenerEtapasProximas(),
         _filtroEstado,
         _filtroArea
-    ) { postulaciones, estado, area ->
+    ) { postulaciones, etapas, estado, area ->
         val filtradas = postulaciones.filter { postulacion ->
             (estado == null || postulacion.estado == estado) &&
                     (area == null || postulacion.area == area)
         }
+        val ahora = System.currentTimeMillis()
+        val proximaEtapaPorPostulacion = etapas
+            .filter { it.fecha >= ahora }
+            .groupBy { it.postulacionId }
+            .mapValues { (_, etapasDePostulacion) -> etapasDePostulacion.minOf { it.fecha } }
+
         PostulacionListUiState(
             postulaciones = filtradas,
             totalSinFiltrar = postulaciones,
+            proximaEtapaPorPostulacion = proximaEtapaPorPostulacion,
             filtroEstado = estado,
             filtroArea = area,
             isLoading = false

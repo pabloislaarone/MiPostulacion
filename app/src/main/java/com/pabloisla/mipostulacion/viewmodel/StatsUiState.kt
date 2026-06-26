@@ -10,11 +10,10 @@ sealed interface RetoUiState {
 }
 
 data class ProgresoPostulaciones(
-    val activas: Int = 0,
-    val ofertas: Int = 0,
-    val rechazadas: Int = 0
+    val conteoPorEstado: Map<String, Int> = emptyMap()
 ) {
-    val total: Int get() = activas + ofertas + rechazadas
+    val total: Int get() = conteoPorEstado.values.sum()
+    val ofertas: Int get() = conteoPorEstado["Oferta"] ?: 0
     val porcentajeOfertas: Int get() = if (total == 0) 0 else (ofertas * 100) / total
 }
 
